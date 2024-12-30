@@ -8,13 +8,11 @@ import (
 	"github.com/in43sh/homebuzz-backend/database"
 )
 
-// User represents the structure of a user
 type User struct {
 	Username string `json:"username"`
 	Password string `json:"password"`
 }
 
-// AddUser adds a new user to the database
 func AddUser(ctx *gin.Context) {
 	body := User{}
 	data, err := ctx.GetRawData()
@@ -34,4 +32,26 @@ func AddUser(ctx *gin.Context) {
 	} else {
 		ctx.JSON(http.StatusOK, gin.H{"message": "User successfully created."})
 	}
+}
+
+func GetUsers(ctx *gin.Context) {
+	rows, err := database.Db.Query("SELECT username, password FROM users")
+	if err != nil {
+		ctx.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"error": "Couldn't fetch users"})
+		return
+	}
+	defer rows.Close()
+
+	users := []User{}
+
+	for rows.Next() {
+		var user User
+		if err := rows.Scan(&user.Username, &user.Password); err != nil {
+			ctx.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"error": "Error reading user data"})
+			return
+		}
+		users = append(users, user)
+	}
+
+	ctx.JSON(http.StatusOK, gin.H{"users": users})
 }
