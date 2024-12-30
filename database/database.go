@@ -13,11 +13,14 @@ var Db *sql.DB
 func ConnectDatabase() {
 	host := os.Getenv("DATABASE_HOST")
 	port := os.Getenv("DATABASE_PORT")
+	if port == "" {
+		port = "5432" // Default PostgreSQL port
+	}
 	user := os.Getenv("DATABASE_USER")
 	dbname := os.Getenv("DATABASE_NAME")
 	pass := os.Getenv("DATABASE_PASSWORD")
 
-	if host == "" || port == "" || user == "" || dbname == "" || pass == "" {
+	if host == "" || user == "" || dbname == "" || pass == "" {
 		fmt.Println("Missing one or more database connection details in environment variables")
 		panic("Please check your Render environment settings for missing variables")
 	}
@@ -35,8 +38,13 @@ func ConnectDatabase() {
 	if err != nil {
 		fmt.Println("Error pinging database:", err)
 		panic(err)
-	} else {
-		Db = db
-		fmt.Println("Successfully connected to the database!")
 	}
+
+	// Connection pooling
+	db.SetMaxOpenConns(10)
+	db.SetMaxIdleConns(5)
+	db.SetConnMaxLifetime(0) // No connection timeout
+
+	Db = db
+	fmt.Println("Successfully connected to the database!")
 }
