@@ -14,17 +14,11 @@ func ConnectDatabase() {
 	host := os.Getenv("DATABASE_HOST")
 	port := os.Getenv("DATABASE_PORT")
 	if port == "" {
-		port = "5432" // Default PostgreSQL port
+		port = "5432"
 	}
 	user := os.Getenv("DATABASE_USER")
 	dbname := os.Getenv("DATABASE_NAME")
 	pass := os.Getenv("DATABASE_PASSWORD")
-
-	fmt.Printf("DATABASE_HOST: %s\n", host)
-	fmt.Printf("DATABASE_PORT: %s\n", port)
-	fmt.Printf("DATABASE_USER: %s\n", user)
-	fmt.Printf("DATABASE_NAME: %s\n", dbname)
-	fmt.Printf("DATABASE_PASSWORD: %s\n", pass)
 
 	if host == "" || user == "" || dbname == "" || pass == "" {
 		fmt.Println("Missing one or more database connection details in environment variables")
@@ -46,10 +40,9 @@ func ConnectDatabase() {
 		panic(err)
 	}
 
-	// Connection pooling
 	db.SetMaxOpenConns(10)
 	db.SetMaxIdleConns(5)
-	db.SetConnMaxLifetime(0) // No connection timeout
+	db.SetConnMaxLifetime(0)
 
 	Db = db
 	fmt.Println("Successfully connected to the database!")

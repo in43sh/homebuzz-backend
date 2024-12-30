@@ -18,7 +18,7 @@ func main() {
 
 	allowOrigins := []string{"http://localhost:3000"}
 	if os.Getenv("GIN_MODE") == "release" {
-		allowOrigins = []string{"https://your-production-domain.com"}
+		allowOrigins = []string{"https://homebuzz-backend.onrender.com"}
 	}
 
 	route.Use(cors.New(cors.Config{
