@@ -5,19 +5,12 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/joho/godotenv"
 	_ "github.com/lib/pq"
 )
 
 var Db *sql.DB
 
 func ConnectDatabase() {
-	err := godotenv.Load()
-	if err != nil {
-		fmt.Println("Error occurred loading .env file, please check")
-		panic(err)
-	}
-
 	host := os.Getenv("HOST")
 	port := os.Getenv("PORT")
 	user := os.Getenv("USER")
@@ -25,8 +18,8 @@ func ConnectDatabase() {
 	pass := os.Getenv("PASSWORD")
 
 	if host == "" || port == "" || user == "" || dbname == "" || pass == "" {
-		fmt.Println("Missing one or more database connection details in .env file")
-		panic("Please check your .env file for missing variables")
+		fmt.Println("Missing one or more database connection details in environment variables")
+		panic("Please check your Render environment settings for missing variables")
 	}
 
 	psqlSetup := fmt.Sprintf("host=%s port=%s user=%s dbname=%s password=%s sslmode=require",
@@ -38,7 +31,7 @@ func ConnectDatabase() {
 		panic(errSql)
 	}
 
-	err = db.Ping()
+	err := db.Ping()
 	if err != nil {
 		fmt.Println("Error pinging database:", err)
 		panic(err)
