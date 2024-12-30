@@ -7,8 +7,8 @@ import (
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
 	"github.com/in43sh/homebuzz-backend/database"
-	productRoutes "github.com/in43sh/homebuzz-backend/routes/product" // Correct package import
-	userRoutes "github.com/in43sh/homebuzz-backend/routes/user"       // Correct package import
+	productRoutes "github.com/in43sh/homebuzz-backend/routes/product"
+	userRoutes "github.com/in43sh/homebuzz-backend/routes/user"
 )
 
 func main() {
