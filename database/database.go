@@ -11,11 +11,11 @@ import (
 var Db *sql.DB
 
 func ConnectDatabase() {
-	host := os.Getenv("HOST")
-	port := os.Getenv("PORT")
-	user := os.Getenv("USER")
-	dbname := os.Getenv("DB_NAME")
-	pass := os.Getenv("PASSWORD")
+	host := os.Getenv("DATABASE_HOST")
+	port := os.Getenv("DATABASE_PORT")
+	user := os.Getenv("DATABASE_USER")
+	dbname := os.Getenv("DATABASE_NAME")
+	pass := os.Getenv("DATABASE_PASSWORD")
 
 	if host == "" || port == "" || user == "" || dbname == "" || pass == "" {
 		fmt.Println("Missing one or more database connection details in environment variables")
