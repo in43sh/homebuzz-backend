@@ -18,7 +18,7 @@ func main() {
 
 	allowOrigins := []string{"http://localhost:3000"}
 	if os.Getenv("GIN_MODE") == "release" {
-		allowOrigins = []string{"https://homebuzz-backend.onrender.com"}
+		allowOrigins = []string{"https://homebuzz-backend.onrender.com", "https://homebuzz.netlify.app"}
 	}
 	fmt.Printf("allowOrigins: %s\n", allowOrigins)
 
