@@ -12,9 +12,11 @@ import (
 var Db *sql.DB
 
 func ConnectDatabase() {
-	err := godotenv.Load()
-	if err != nil {
-		fmt.Println("Error loading .env file")
+	if os.Getenv("GIN_MODE") != "release" {
+		err := godotenv.Load()
+		if err != nil {
+			fmt.Println("Error loading .env file")
+		}
 	}
 
 	host := os.Getenv("DATABASE_HOST")
@@ -36,14 +38,6 @@ func ConnectDatabase() {
 		sslMode = "require"
 	}
 
-	fmt.Printf("DATABASE_HOST: %s\n", host)
-	fmt.Printf("DATABASE_PORT: %s\n", port)
-	fmt.Printf("DATABASE_USER: %s\n", user)
-	fmt.Printf("DATABASE_NAME: %s\n", dbname)
-	fmt.Printf("DATABASE_PASSWORD: %s\n", pass)
-	fmt.Printf("SSLMODE: %s\n", sslMode)
-	fmt.Printf("GYN_MODE: %s\n", ginMode)
-
 	psqlSetup := fmt.Sprintf("host=%s port=%s user=%s dbname=%s password=%s sslmode=%s",
 		host, port, user, dbname, pass, sslMode)
 
@@ -54,7 +48,7 @@ func ConnectDatabase() {
 		panic(errSql)
 	}
 
-	err = Db.Ping()
+	err := Db.Ping()
 	if err != nil {
 		fmt.Println("Error pinging database:", err)
 		panic(err)
