@@ -5,12 +5,18 @@ import (
 	"fmt"
 	"os"
 
+	"github.com/joho/godotenv"
 	_ "github.com/lib/pq"
 )
 
 var Db *sql.DB
 
 func ConnectDatabase() {
+	err := godotenv.Load()
+	if err != nil {
+		fmt.Println("Error loading .env file")
+	}
+
 	host := os.Getenv("DATABASE_HOST")
 	port := os.Getenv("DATABASE_PORT")
 	if port == "" {
@@ -20,30 +26,43 @@ func ConnectDatabase() {
 	dbname := os.Getenv("DATABASE_NAME")
 	pass := os.Getenv("DATABASE_PASSWORD")
 
-	if host == "" || user == "" || dbname == "" || pass == "" {
-		fmt.Println("Missing one or more database connection details in environment variables")
-		panic("Please check your Render environment settings for missing variables")
+	ginMode := os.Getenv("GIN_MODE")
+	if ginMode == "" {
+		ginMode = "debug"
 	}
 
-	psqlSetup := fmt.Sprintf("host=%s port=%s user=%s dbname=%s password=%s sslmode=require",
-		host, port, user, dbname, pass)
+	sslMode := "disable"
+	if ginMode == "release" {
+		sslMode = "require"
+	}
 
-	db, errSql := sql.Open("postgres", psqlSetup)
+	fmt.Printf("DATABASE_HOST: %s\n", host)
+	fmt.Printf("DATABASE_PORT: %s\n", port)
+	fmt.Printf("DATABASE_USER: %s\n", user)
+	fmt.Printf("DATABASE_NAME: %s\n", dbname)
+	fmt.Printf("DATABASE_PASSWORD: %s\n", pass)
+	fmt.Printf("SSLMODE: %s\n", sslMode)
+	fmt.Printf("GYN_MODE: %s\n", ginMode)
+
+	psqlSetup := fmt.Sprintf("host=%s port=%s user=%s dbname=%s password=%s sslmode=%s",
+		host, port, user, dbname, pass, sslMode)
+
+	var errSql error
+	Db, errSql = sql.Open("postgres", psqlSetup)
 	if errSql != nil {
 		fmt.Println("Error while connecting to the database:", errSql)
 		panic(errSql)
 	}
 
-	err := db.Ping()
+	err = Db.Ping()
 	if err != nil {
 		fmt.Println("Error pinging database:", err)
 		panic(err)
 	}
 
-	db.SetMaxOpenConns(10)
-	db.SetMaxIdleConns(5)
-	db.SetConnMaxLifetime(0)
+	Db.SetMaxOpenConns(10)
+	Db.SetMaxIdleConns(5)
+	Db.SetConnMaxLifetime(0)
 
-	Db = db
 	fmt.Println("Successfully connected to the database!")
 }
