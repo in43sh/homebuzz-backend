@@ -15,6 +15,7 @@ func ConnectDatabase() {
 	err := godotenv.Load()
 	if err != nil {
 		fmt.Println("Error occurred loading .env file, please check")
+		panic(err)
 	}
 
 	host := os.Getenv("HOST")
@@ -22,6 +23,11 @@ func ConnectDatabase() {
 	user := os.Getenv("USER")
 	dbname := os.Getenv("DB_NAME")
 	pass := os.Getenv("PASSWORD")
+
+	if host == "" || port == "" || user == "" || dbname == "" || pass == "" {
+		fmt.Println("Missing one or more database connection details in .env file")
+		panic("Please check your .env file for missing variables")
+	}
 
 	psqlSetup := fmt.Sprintf("host=%s port=%s user=%s dbname=%s password=%s sslmode=require",
 		host, port, user, dbname, pass)
