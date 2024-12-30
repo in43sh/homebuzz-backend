@@ -20,6 +20,12 @@ func ConnectDatabase() {
 	dbname := os.Getenv("DATABASE_NAME")
 	pass := os.Getenv("DATABASE_PASSWORD")
 
+	fmt.Printf("DATABASE_HOST: %s\n", host)
+	fmt.Printf("DATABASE_PORT: %s\n", port)
+	fmt.Printf("DATABASE_USER: %s\n", user)
+	fmt.Printf("DATABASE_NAME: %s\n", dbname)
+	fmt.Printf("DATABASE_PASSWORD: %s\n", pass)
+
 	if host == "" || user == "" || dbname == "" || pass == "" {
 		fmt.Println("Missing one or more database connection details in environment variables")
 		panic("Please check your Render environment settings for missing variables")
