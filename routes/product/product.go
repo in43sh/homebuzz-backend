@@ -1,6 +1,7 @@
 package routes
 
 import (
+	"context"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
@@ -8,11 +9,12 @@ import (
 )
 
 type Product struct {
-	Image        string  `json:"image" binding:"required"`
-	ProductTitle string  `json:"product_title" binding:"required"`
-	Price        float64 `json:"price" binding:"required"`
-	Unit         string  `json:"unit" binding:"required"`
-	Rating       int     `json:"rating" binding:"required,gte=1,lte=5"`
+	ID           int64   `bun:",pk,autoincrement"`
+	Image        string  `bun:"image,notnull" json:"image" binding:"required"`
+	ProductTitle string  `bun:"product_title,notnull" json:"product_title" binding:"required"`
+	Price        float64 `bun:"price,notnull" json:"price" binding:"required"`
+	Unit         string  `bun:"unit,notnull" json:"unit" binding:"required"`
+	Rating       int     `bun:"rating,notnull" json:"rating" binding:"required,gte=1,lte=5"`
 }
 
 func AddProduct(ctx *gin.Context) {
@@ -23,9 +25,7 @@ func AddProduct(ctx *gin.Context) {
 		return
 	}
 
-	query := `INSERT INTO products (image, product_title, price, unit, rating)
-              VALUES ($1, $2, $3, $4, $5)`
-	_, err := database.Db.Exec(query, product.Image, product.ProductTitle, product.Price, product.Unit, product.Rating)
+	_, err := database.BunDB.NewInsert().Model(&product).Exec(context.Background())
 	if err != nil {
 		ctx.JSON(http.StatusInternalServerError, gin.H{"error": "Could not insert product into database"})
 		return
@@ -35,22 +35,14 @@ func AddProduct(ctx *gin.Context) {
 }
 
 func GetProducts(ctx *gin.Context) {
-	rows, err := database.Db.Query("SELECT image, product_title, price, unit, rating FROM products")
+	var products []Product
+
+	err := database.BunDB.NewSelect().
+		Model(&products).
+		Scan(context.Background())
 	if err != nil {
 		ctx.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"error": "Couldn't fetch products"})
 		return
-	}
-	defer rows.Close()
-
-	products := []Product{}
-
-	for rows.Next() {
-		var product Product
-		if err := rows.Scan(&product.Image, &product.ProductTitle, &product.Price, &product.Unit, &product.Rating); err != nil {
-			ctx.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"error": "Error reading user data"})
-			return
-		}
-		products = append(products, product)
 	}
 
 	ctx.JSON(http.StatusOK, gin.H{"products": products})

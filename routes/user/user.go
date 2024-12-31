@@ -1,6 +1,7 @@
 package routes
 
 import (
+	"context"
 	"net/http"
 	"time"
 
@@ -11,8 +12,9 @@ import (
 )
 
 type User struct {
-	Username string `json:"username" binding:"required"`
-	Password string `json:"password" binding:"required"`
+	ID       int64  `bun:",pk,autoincrement"`
+	Username string `bun:"username,unique,notnull" json:"username" binding:"required"`
+	Password string `bun:"password,notnull" json:"password" binding:"required"`
 }
 
 var jwtKey = []byte("your_secret_key")
@@ -30,8 +32,11 @@ func Register(ctx *gin.Context) {
 		return
 	}
 
-	var existingUser string
-	err := database.Db.QueryRow("SELECT username FROM users WHERE username = $1", user.Username).Scan(&existingUser)
+	existingUser := new(User)
+	err := database.BunDB.NewSelect().
+		Model(existingUser).
+		Where("username = ?", user.Username).
+		Scan(context.Background())
 	if err == nil {
 		ctx.AbortWithStatusJSON(http.StatusConflict, gin.H{"error": "User already exists"})
 		return
@@ -42,8 +47,9 @@ func Register(ctx *gin.Context) {
 		ctx.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"error": "Failed to encrypt password"})
 		return
 	}
+	user.Password = string(hashedPassword)
 
-	_, err = database.Db.Exec("INSERT INTO users(username, password) VALUES ($1, $2)", user.Username, string(hashedPassword))
+	_, err = database.BunDB.NewInsert().Model(&user).Exec(context.Background())
 	if err != nil {
 		ctx.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"error": "Failed to create user"})
 		return
@@ -60,15 +66,17 @@ func Login(ctx *gin.Context) {
 		return
 	}
 
-	var storedPassword string
-
-	err := database.Db.QueryRow("SELECT password FROM users WHERE username = $1", credentials.Username).Scan(&storedPassword)
+	storedUser := new(User)
+	err := database.BunDB.NewSelect().
+		Model(storedUser).
+		Where("username = ?", credentials.Username).
+		Scan(context.Background())
 	if err != nil {
 		ctx.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{"error": "Invalid username or password"})
 		return
 	}
 
-	err = bcrypt.CompareHashAndPassword([]byte(storedPassword), []byte(credentials.Password))
+	err = bcrypt.CompareHashAndPassword([]byte(storedUser.Password), []byte(credentials.Password))
 	if err != nil {
 		ctx.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{"error": "Invalid username or password"})
 		return
@@ -96,32 +104,27 @@ func Login(ctx *gin.Context) {
 }
 
 func GetUsers(ctx *gin.Context) {
-	rows, err := database.Db.Query("SELECT username, password FROM users")
+	var users []User
+
+	err := database.BunDB.NewSelect().
+		Model(&users).
+		Scan(context.Background())
 	if err != nil {
 		ctx.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"error": "Couldn't fetch users"})
 		return
-	}
-	defer rows.Close()
-
-	users := []User{}
-
-	for rows.Next() {
-		var user User
-		if err := rows.Scan(&user.Username, &user.Password); err != nil {
-			ctx.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"error": "Error reading user data"})
-			return
-		}
-		users = append(users, user)
 	}
 
 	ctx.JSON(http.StatusOK, gin.H{"users": users})
 }
 
-func GetUserByUsername(ctx *gin.Context) {
-	username := ctx.Param("username")
+func GetUser(ctx *gin.Context) {
+	id := ctx.Param("id")
 
-	var user User
-	err := database.Db.QueryRow("SELECT username, password FROM users WHERE username = $1", username).Scan(&user.Username, &user.Password)
+	user := new(User)
+	err := database.BunDB.NewSelect().
+		Model(user).
+		Where("id = ?", id).
+		Scan(context.Background())
 	if err != nil {
 		ctx.AbortWithStatusJSON(http.StatusNotFound, gin.H{"error": "User not found"})
 		return
@@ -130,10 +133,35 @@ func GetUserByUsername(ctx *gin.Context) {
 	ctx.JSON(http.StatusOK, gin.H{"user": user})
 }
 
-func DeleteUserByUsername(ctx *gin.Context) {
-	username := ctx.Param("username")
+// func DeleteUserByUsername(ctx *gin.Context) {
+// 	username := ctx.Param("username")
 
-	result, err := database.Db.Exec("DELETE FROM users WHERE username = $1", username)
+// 	// Delete user using Bun ORM
+// 	result, err := database.BunDB.NewDelete().
+// 		Model((*User)(nil)).
+// 		Where("username = ?", username).
+// 		Exec(context.Background())
+// 	if err != nil {
+// 		ctx.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"error": "Failed to delete user"})
+// 		return
+// 	}
+
+// 	rowsAffected, _ := result.RowsAffected()
+// 	if rowsAffected == 0 {
+// 		ctx.AbortWithStatusJSON(http.StatusNotFound, gin.H{"error": "User not found"})
+// 		return
+// 	}
+
+// 	ctx.JSON(http.StatusOK, gin.H{"message": "User successfully deleted"})
+// }
+
+func DeleteUser(ctx *gin.Context) {
+	id := ctx.Param("id")
+
+	result, err := database.BunDB.NewDelete().
+		Model((*User)(nil)).
+		Where("id = ?", id).
+		Exec(context.Background())
 	if err != nil {
 		ctx.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"error": "Failed to delete user"})
 		return

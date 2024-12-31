@@ -43,10 +43,11 @@ func main() {
 	route.POST("/register", userRoutes.Register)
 	route.POST("/login", userRoutes.Login)
 	route.GET("/users", userRoutes.GetUsers)
-	route.GET("/users/:username", userRoutes.GetUserByUsername)
-	route.DELETE("/users/:username", userRoutes.DeleteUserByUsername)
+	route.GET("/users/:id", userRoutes.GetUser)
+	route.DELETE("/users/:id", userRoutes.DeleteUser)
 
 	// Product routes
+	route.POST("/products", productRoutes.AddProduct)
 	route.GET("/products", productRoutes.GetProducts)
 
 	port := os.Getenv("PORT")
