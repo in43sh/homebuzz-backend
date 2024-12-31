@@ -53,5 +53,5 @@ func GetProducts(ctx *gin.Context) {
 		products = append(products, product)
 	}
 
-	ctx.JSON(http.StatusOK, gin.H{"users": products})
+	ctx.JSON(http.StatusOK, gin.H{"products": products})
 }
