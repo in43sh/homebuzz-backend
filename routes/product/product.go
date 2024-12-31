@@ -37,7 +37,7 @@ func AddProduct(ctx *gin.Context) {
 func GetProducts(ctx *gin.Context) {
 	rows, err := database.Db.Query("SELECT image, product_title, price, unit, rating FROM products")
 	if err != nil {
-		ctx.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"error": "Couldn't fetch users"})
+		ctx.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"error": "Couldn't fetch products"})
 		return
 	}
 	defer rows.Close()
