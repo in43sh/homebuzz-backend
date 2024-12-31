@@ -40,8 +40,11 @@ func main() {
 	})
 
 	// User routes
+	route.POST("/register", userRoutes.Register)
+	route.POST("/login", userRoutes.Login)
 	route.GET("/users", userRoutes.GetUsers)
-	route.POST("/users", userRoutes.AddUser)
+	route.GET("/users/:username", userRoutes.GetUserByUsername)
+	route.DELETE("/users/:username", userRoutes.DeleteUserByUsername)
 
 	// Product routes
 	route.GET("/products", productRoutes.GetProducts)
