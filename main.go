@@ -61,6 +61,7 @@ func main() {
 	// Product routes
 	route.POST("/products", productRoutes.AddProduct)
 	route.GET("/products", productRoutes.GetProducts)
+	route.DELETE("/products/:id", productRoutes.DeleteProduct)
 
 	port := os.Getenv("PORT")
 	if port == "" {

@@ -75,3 +75,34 @@ func GetProducts(ctx *gin.Context) {
 
 	ctx.JSON(http.StatusOK, gin.H{"products": products})
 }
+
+// @Summary Delete a product by ID
+// @Description Delete a product from the system by its ID
+// @Tags Products
+// @Accept  json
+// @Produce  json
+// @Param id path int64 true "Product ID"
+// @Success 200 {object} map[string]interface{} "Product deleted successfully!"
+// @Failure 404 {object} ErrorResponse "Product not found"
+// @Failure 500 {object} ErrorResponse "Failed to delete product"
+// @Router /products/{id} [delete]
+func DeleteProduct(ctx *gin.Context) {
+	id := ctx.Param("id")
+
+	result, err := database.BunDB.NewDelete().
+		Model((*Product)(nil)).
+		Where("id = ?", id).
+		Exec(context.Background())
+	if err != nil {
+		ctx.AbortWithStatusJSON((http.StatusInternalServerError), gin.H{"error": "Failed to delete product"})
+		return
+	}
+
+	rowsAffected, _ := result.RowsAffected()
+	if rowsAffected == 0 {
+		ctx.AbortWithStatusJSON(http.StatusNotFound, gin.H{"error": "Product not found"})
+		return
+	}
+
+	ctx.JSON(http.StatusOK, gin.H{"message": "Product deleted successfully!"})
+}
