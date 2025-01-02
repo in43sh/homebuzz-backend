@@ -17,6 +17,26 @@ type Product struct {
 	Rating       int     `bun:"rating,notnull" json:"rating" binding:"required,gte=1,lte=5"`
 }
 
+// SuccessResponse for consistent success responses
+type SuccessResponse struct {
+	Message string `json:"message" example:"Product added successfully!"`
+}
+
+// ErrorResponse for consistent error responses
+type ErrorResponse struct {
+	Error string `json:"error" example:"Invalid input"`
+}
+
+// @Summary Add a new product
+// @Description Add a new product by providing image, title, price, unit, and rating
+// @Tags Products
+// @Accept  json
+// @Produce  json
+// @Param product body Product true "Product information"
+// @Success 200 {object} SuccessResponse "Product added successfully!"
+// @Failure 400 {object} ErrorResponse "Invalid input"
+// @Failure 500 {object} ErrorResponse "Could not insert product into database"
+// @Router /products [post]
 func AddProduct(ctx *gin.Context) {
 	var product Product
 
@@ -31,9 +51,17 @@ func AddProduct(ctx *gin.Context) {
 		return
 	}
 
-	ctx.JSON(http.StatusOK, gin.H{"message": "Product added successfully!"})
+	ctx.JSON(http.StatusOK, SuccessResponse{Message: "Product added successfully!"})
 }
 
+// @Summary Get all products
+// @Description Retrieve a list of all products in the system
+// @Tags Products
+// @Accept  json
+// @Produce  json
+// @Success 200 {object} map[string]interface{} "List of products"
+// @Failure 500 {object} ErrorResponse "Couldn't fetch products"
+// @Router /products [get]
 func GetProducts(ctx *gin.Context) {
 	var products []Product
 
@@ -41,7 +69,7 @@ func GetProducts(ctx *gin.Context) {
 		Model(&products).
 		Scan(context.Background())
 	if err != nil {
-		ctx.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"error": "Couldn't fetch products"})
+		ctx.AbortWithStatusJSON(http.StatusInternalServerError, ErrorResponse{Error: "Couldn't fetch products"})
 		return
 	}
 

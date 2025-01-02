@@ -1,0 +1,276 @@
+basePath: /
+definitions:
+  github_com_in43sh_homebuzz-backend_routes_product.ErrorResponse:
+    properties:
+      error:
+        example: Invalid input
+        type: string
+    type: object
+  github_com_in43sh_homebuzz-backend_routes_product.SuccessResponse:
+    properties:
+      message:
+        example: Product added successfully!
+        type: string
+    type: object
+  github_com_in43sh_homebuzz-backend_routes_user.ErrorResponse:
+    properties:
+      error:
+        example: Invalid input
+        type: string
+    type: object
+  github_com_in43sh_homebuzz-backend_routes_user.SuccessResponse:
+    properties:
+      message:
+        example: User successfully created
+        type: string
+    type: object
+  routes.Product:
+    properties:
+      id:
+        type: integer
+      image:
+        type: string
+      price:
+        type: number
+      product_title:
+        type: string
+      rating:
+        maximum: 5
+        minimum: 1
+        type: integer
+      unit:
+        type: string
+    required:
+    - image
+    - price
+    - product_title
+    - rating
+    - unit
+    type: object
+  routes.User:
+    properties:
+      id:
+        type: integer
+      password:
+        example: password123
+        type: string
+      username:
+        example: johndoe
+        type: string
+    required:
+    - password
+    - username
+    type: object
+host: localhost:8080
+info:
+  contact: {}
+  description: This is a sample server for managing authentication.
+  title: Your API
+  version: "1.0"
+paths:
+  /login:
+    post:
+      consumes:
+      - application/json
+      description: Authenticate a user and return a JWT token.
+      parameters:
+      - description: User credentials
+        in: body
+        name: credentials
+        required: true
+        schema:
+          $ref: '#/definitions/routes.User'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties: true
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            additionalProperties: true
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties: true
+            type: object
+      summary: Login user
+      tags:
+      - Auth
+  /products:
+    get:
+      consumes:
+      - application/json
+      description: Retrieve a list of all products in the system
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: List of products
+          schema:
+            additionalProperties: true
+            type: object
+        "500":
+          description: Couldn't fetch products
+          schema:
+            $ref: '#/definitions/github_com_in43sh_homebuzz-backend_routes_product.ErrorResponse'
+      summary: Get all products
+      tags:
+      - Products
+    post:
+      consumes:
+      - application/json
+      description: Add a new product by providing image, title, price, unit, and rating
+      parameters:
+      - description: Product information
+        in: body
+        name: product
+        required: true
+        schema:
+          $ref: '#/definitions/routes.Product'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Product added successfully!
+          schema:
+            $ref: '#/definitions/github_com_in43sh_homebuzz-backend_routes_product.SuccessResponse'
+        "400":
+          description: Invalid input
+          schema:
+            $ref: '#/definitions/github_com_in43sh_homebuzz-backend_routes_product.ErrorResponse'
+        "500":
+          description: Could not insert product into database
+          schema:
+            $ref: '#/definitions/github_com_in43sh_homebuzz-backend_routes_product.ErrorResponse'
+      summary: Add a new product
+      tags:
+      - Products
+  /register:
+    post:
+      consumes:
+      - application/json
+      description: Register a new user by providing username and password
+      parameters:
+      - description: User credentials
+        in: body
+        name: user
+        required: true
+        schema:
+          $ref: '#/definitions/routes.User'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: User successfully created
+          schema:
+            $ref: '#/definitions/github_com_in43sh_homebuzz-backend_routes_user.SuccessResponse'
+        "400":
+          description: Invalid input
+          schema:
+            $ref: '#/definitions/github_com_in43sh_homebuzz-backend_routes_user.ErrorResponse'
+        "409":
+          description: User already exists
+          schema:
+            $ref: '#/definitions/github_com_in43sh_homebuzz-backend_routes_user.ErrorResponse'
+        "500":
+          description: Failed to create user
+          schema:
+            $ref: '#/definitions/github_com_in43sh_homebuzz-backend_routes_user.ErrorResponse'
+      summary: Register a new user
+      tags:
+      - Auth
+  /users:
+    get:
+      consumes:
+      - application/json
+      description: Retrieve a list of all users in the system
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties: true
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties: true
+            type: object
+      summary: Get all users
+      tags:
+      - Users
+  /users/{id}:
+    delete:
+      consumes:
+      - application/json
+      description: Delete a user from the system by their ID
+      parameters:
+      - description: User ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties: true
+            type: object
+        "404":
+          description: Not Found
+          schema:
+            additionalProperties: true
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties: true
+            type: object
+      summary: Delete a user by ID
+      tags:
+      - Users
+    get:
+      consumes:
+      - application/json
+      description: Retrieve a single user by their ID
+      parameters:
+      - description: User ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties: true
+            type: object
+        "404":
+          description: Not Found
+          schema:
+            additionalProperties: true
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties: true
+            type: object
+      summary: Get a specific user by ID
+      tags:
+      - Users
+swagger: "2.0"

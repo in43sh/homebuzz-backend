@@ -9,9 +9,18 @@ import (
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
 	"github.com/in43sh/homebuzz-backend/database"
+	_ "github.com/in43sh/homebuzz-backend/docs"
 	productRoutes "github.com/in43sh/homebuzz-backend/routes/product"
 	userRoutes "github.com/in43sh/homebuzz-backend/routes/user"
+	swaggerFiles "github.com/swaggo/files" // swagger embed files
+	ginSwagger "github.com/swaggo/gin-swagger"
 )
+
+// @title Your API
+// @version 1.0
+// @description This is a sample server for managing authentication.
+// @host localhost:8080
+// @BasePath /
 
 func main() {
 	route := gin.Default()
@@ -38,6 +47,9 @@ func main() {
 			"message": "pong",
 		})
 	})
+
+	// Swagger endpoint
+	route.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
 
 	// User routes
 	route.POST("/register", userRoutes.Register)
